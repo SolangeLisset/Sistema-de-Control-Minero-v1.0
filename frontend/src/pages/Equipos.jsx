@@ -19,7 +19,7 @@ const estadoIcon = (e) => {
 function EquipoModal({ equipo, onClose, onSaved }) {
   const { addToast } = useToast();
   const [form, setForm] = useState(
-    equipo || { codigo: "", nombre: "", tipo: TIPOS[0], estado: "operativo", ubicacion: "" }
+    equipo || { codigo: "", nombre: "", tipo: TIPOS[0], estado: "operativo", ubicacion: "", horometro: 0, limite_mantencion: 500 }
   );
   const [saving, setSaving] = useState(false);
 
@@ -78,6 +78,16 @@ function EquipoModal({ equipo, onClose, onSaved }) {
             <div className="form-group">
               <label className="form-label">Ubicación *</label>
               <input name="ubicacion" className="form-control" value={form.ubicacion} onChange={handleChange} placeholder="Ej: Pit Norte — Nivel 3480" required />
+            </div>
+            <div className="form-grid">
+              <div className="form-group">
+                <label className="form-label">Horómetro Actual (Hrs) *</label>
+                <input type="number" name="horometro" className="form-control" value={form.horometro} onChange={handleChange} min={0} placeholder="Ej: 150" required />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Límite de Mantención (Hrs) *</label>
+                <input type="number" name="limite_mantencion" className="form-control" value={form.limite_mantencion} onChange={handleChange} min={10} placeholder="Ej: 500" required />
+              </div>
             </div>
           </div>
           <div className="modal-footer">
@@ -295,6 +305,7 @@ export default function Equipos() {
                 <th>Nombre</th>
                 <th>Tipo</th>
                 <th>Estado</th>
+                <th>Horómetro</th>
                 <th>Ubicación</th>
                 <th>Registrado</th>
                 <th>Acciones</th>
@@ -310,6 +321,40 @@ export default function Equipos() {
                     <span className={`badge ${estadoBadge(eq.estado)}`}>
                       {estadoIcon(eq.estado)} {eq.estado}
                     </span>
+                  </td>
+                  <td>
+                    {(() => {
+                      const horo = eq.horometro || 0;
+                      const limit = eq.limite_mantencion || 500;
+                      const pct = Math.min(Math.round((horo / limit) * 100), 100);
+                      const isCritical = pct >= 90;
+                      return (
+                        <div style={{ minWidth: 120 }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 2 }}>
+                            <span style={{ fontWeight: 600, color: isCritical ? "var(--red)" : "var(--text-secondary)" }}>
+                              {horo} / {limit} hrs
+                            </span>
+                            <span style={{ fontWeight: 700, color: isCritical ? "var(--red)" : "var(--text-muted)" }}>
+                              {pct}%
+                            </span>
+                          </div>
+                          <div style={{ background: "var(--bg-secondary)", borderRadius: 10, height: 6, overflow: "hidden", border: "1px solid var(--border)", position: "relative" }}>
+                            <div style={{ 
+                              width: `${pct}%`, 
+                              height: "100%", 
+                              background: isCritical ? "var(--red)" : pct >= 75 ? "var(--yellow)" : "var(--green)",
+                              borderRadius: 10,
+                              boxShadow: isCritical ? "0 0 8px var(--red)" : "none"
+                            }} />
+                          </div>
+                          {isCritical && (
+                            <div style={{ fontSize: 9, color: "var(--red)", fontWeight: 700, marginTop: 2, textTransform: "uppercase", letterSpacing: 0.3, animation: "fadeIn 0.6s infinite alternate" }}>
+                              ⚠️ Alerta Mantención
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </td>
                   <td style={{ color: "var(--text-secondary)", fontSize: 12 }}>📍 {eq.ubicacion}</td>
                   <td style={{ color: "var(--text-muted)", fontSize: 12 }}>

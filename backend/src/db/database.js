@@ -40,9 +40,15 @@ async function initDB() {
       tipo TEXT NOT NULL,
       estado TEXT NOT NULL DEFAULT 'operativo',
       ubicacion TEXT NOT NULL,
+      horometro INTEGER DEFAULT 0,
+      limite_mantencion INTEGER DEFAULT 500,
       creado_en DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  // Migraciones: Intentar agregar columnas si ya existía la tabla antigua
+  try { db.run("ALTER TABLE equipos ADD COLUMN horometro INTEGER DEFAULT 0"); } catch(e){}
+  try { db.run("ALTER TABLE equipos ADD COLUMN limite_mantencion INTEGER DEFAULT 500"); } catch(e){}
 
   db.run(`
     CREATE TABLE IF NOT EXISTS mantenciones (
@@ -81,19 +87,19 @@ async function initDB() {
 
     // Insertar equipos
     const equipos = [
-      ["CAM-001", "Camión Komatsu 830E", "Camión de extracción", "operativo", "Pit Norte — Nivel 3480"],
-      ["CAM-002", "Camión Caterpillar 793F", "Camión de extracción", "mantencion", "Pit Sur — Nivel 3320"],
-      ["CAM-003", "Camión Liebherr T 282C", "Camión de extracción", "operativo", "Pit Central — Nivel 3400"],
-      ["PER-001", "Perforadora Atlas Copco DM45", "Perforadora", "operativo", "Banco 12 — Área Este"],
-      ["PER-002", "Perforadora Sandvik DR410i", "Perforadora", "falla", "Banco 08 — Área Oeste"],
-      ["EXC-001", "Excavadora Komatsu PC8000", "Excavadora", "operativo", "Pit Norte — Frente A"],
-      ["EXC-002", "Excavadora Liebherr R 9400", "Excavadora", "operativo", "Pit Sur — Frente B"],
-      ["CAR-001", "Cargador Caterpillar 994K", "Cargador frontal", "operativo", "Acopio Principal"],
-      ["BUL-001", "Bulldozer Komatsu D375A", "Bulldozer", "inactivo", "Taller Principal"],
-      ["GRU-001", "Grúa Liebherr LTM 1500", "Grúa", "operativo", "Área de Mantención"]
+      ["CAM-001", "Camión Komatsu 830E", "Camión de extracción", "operativo", "Pit Norte — Nivel 3480", 480, 500],
+      ["CAM-002", "Camión Caterpillar 793F", "Camión de extracción", "mantencion", "Pit Sur — Nivel 3320", 250, 500],
+      ["CAM-003", "Camión Liebherr T 282C", "Camión de extracción", "operativo", "Pit Central — Nivel 3400", 495, 500],
+      ["PER-001", "Perforadora Atlas Copco DM45", "Perforadora", "operativo", "Banco 12 — Área Este", 120, 250],
+      ["PER-002", "Perforadora Sandvik DR410i", "Perforadora", "falla", "Banco 08 — Área Oeste", 242, 250],
+      ["EXC-001", "Excavadora Komatsu PC8000", "Excavadora", "operativo", "Pit Norte — Frente A", 620, 1000],
+      ["EXC-002", "Excavadora Liebherr R 9400", "Excavadora", "operativo", "Pit Sur — Frente B", 990, 1000],
+      ["CAR-001", "Cargador Caterpillar 994K", "Cargador frontal", "operativo", "Acopio Principal", 310, 500],
+      ["BUL-001", "Bulldozer Komatsu D375A", "Bulldozer", "inactivo", "Taller Principal", 0, 500],
+      ["GRU-001", "Grúa Liebherr LTM 1500", "Grúa", "operativo", "Área de Mantención", 85, 250]
     ];
     equipos.forEach(eq => {
-      db.run("INSERT INTO equipos (codigo, nombre, tipo, estado, ubicacion) VALUES (?, ?, ?, ?, ?)", eq);
+      db.run("INSERT INTO equipos (codigo, nombre, tipo, estado, ubicacion, horometro, limite_mantencion) VALUES (?, ?, ?, ?, ?, ?, ?)", eq);
     });
 
     // Insertar mantenciones

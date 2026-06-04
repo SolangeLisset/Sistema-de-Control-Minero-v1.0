@@ -41,17 +41,19 @@ const getEquipoById = (req, res) => {
 const createEquipo = (req, res) => {
   try {
     const db = getDB();
-    const { codigo, nombre, tipo, estado, ubicacion } = req.body;
+    const { codigo, nombre, tipo, estado, ubicacion, horometro, limite_mantencion } = req.body;
 
     if (!codigo || !nombre || !tipo || !ubicacion) {
       return res.status(400).json({ error: "Código, nombre, tipo y ubicación son obligatorios" });
     }
 
     const estadoValido = estado || "operativo";
+    const horoVal = horometro !== undefined && horometro !== "" ? parseInt(horometro) : 0;
+    const limVal = limite_mantencion !== undefined && limite_mantencion !== "" ? parseInt(limite_mantencion) : 500;
 
     db.run(
-      `INSERT INTO equipos (codigo, nombre, tipo, estado, ubicacion) VALUES (?, ?, ?, ?, ?)`,
-      [codigo, nombre, tipo, estadoValido, ubicacion]
+      `INSERT INTO equipos (codigo, nombre, tipo, estado, ubicacion, horometro, limite_mantencion) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [codigo, nombre, tipo, estadoValido, ubicacion, horoVal, limVal]
     );
     saveDB();
 
@@ -71,11 +73,14 @@ const updateEquipo = (req, res) => {
   try {
     const db = getDB();
     const { id } = req.params;
-    const { codigo, nombre, tipo, estado, ubicacion } = req.body;
+    const { codigo, nombre, tipo, estado, ubicacion, horometro, limite_mantencion } = req.body;
+
+    const horoVal = horometro !== undefined && horometro !== "" ? parseInt(horometro) : 0;
+    const limVal = limite_mantencion !== undefined && limite_mantencion !== "" ? parseInt(limite_mantencion) : 500;
 
     db.run(
-      `UPDATE equipos SET codigo = ?, nombre = ?, tipo = ?, estado = ?, ubicacion = ? WHERE id = ?`,
-      [codigo, nombre, tipo, estado, ubicacion, id]
+      `UPDATE equipos SET codigo = ?, nombre = ?, tipo = ?, estado = ?, ubicacion = ?, horometro = ?, limite_mantencion = ? WHERE id = ?`,
+      [codigo, nombre, tipo, estado, ubicacion, horoVal, limVal, id]
     );
     saveDB();
 
