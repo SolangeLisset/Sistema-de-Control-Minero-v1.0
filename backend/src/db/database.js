@@ -61,6 +61,57 @@ async function initDB() {
     )
   `);
 
+  // Auto-seed si está vacía
+  const checkTecnicos = db.exec("SELECT COUNT(*) FROM tecnicos");
+  const count = checkTecnicos[0] ? checkTecnicos[0].values[0][0] : 0;
+  if (count === 0) {
+    console.log("🌱 Base de datos vacía. Auto-sembrando datos iniciales...");
+
+    // Insertar técnicos
+    const tecnicos = [
+      ["Juan Mamani Flores", "Mecánica Pesada", "+56 9 8123 4567"],
+      ["Carlos Vega Díaz", "Electricidad Industrial", "+56 9 7654 3210"],
+      ["Pedro Quispe Condori", "Hidráulica y Neumática", "+56 9 9876 5432"],
+      ["Ana Torres Rojas", "Instrumentación", "+56 9 6543 2109"],
+      ["Luis Contreras Silva", "Soldadura", "+56 9 5432 1098"]
+    ];
+    tecnicos.forEach(t => {
+      db.run("INSERT INTO tecnicos (nombre, especialidad, telefono) VALUES (?, ?, ?)", t);
+    });
+
+    // Insertar equipos
+    const equipos = [
+      ["CAM-001", "Camión Komatsu 830E", "Camión de extracción", "operativo", "Pit Norte — Nivel 3480"],
+      ["CAM-002", "Camión Caterpillar 793F", "Camión de extracción", "mantencion", "Pit Sur — Nivel 3320"],
+      ["CAM-003", "Camión Liebherr T 282C", "Camión de extracción", "operativo", "Pit Central — Nivel 3400"],
+      ["PER-001", "Perforadora Atlas Copco DM45", "Perforadora", "operativo", "Banco 12 — Área Este"],
+      ["PER-002", "Perforadora Sandvik DR410i", "Perforadora", "falla", "Banco 08 — Área Oeste"],
+      ["EXC-001", "Excavadora Komatsu PC8000", "Excavadora", "operativo", "Pit Norte — Frente A"],
+      ["EXC-002", "Excavadora Liebherr R 9400", "Excavadora", "operativo", "Pit Sur — Frente B"],
+      ["CAR-001", "Cargador Caterpillar 994K", "Cargador frontal", "operativo", "Acopio Principal"],
+      ["BUL-001", "Bulldozer Komatsu D375A", "Bulldozer", "inactivo", "Taller Principal"],
+      ["GRU-001", "Grúa Liebherr LTM 1500", "Grúa", "operativo", "Área de Mantención"]
+    ];
+    equipos.forEach(eq => {
+      db.run("INSERT INTO equipos (codigo, nombre, tipo, estado, ubicacion) VALUES (?, ?, ?, ?, ?)", eq);
+    });
+
+    // Insertar mantenciones
+    const mantenciones = [
+      [2, 1, "Correctiva", "Falla en sistema de frenos traseros. Reemplazo de pastillas y revisión hidráulica.", "en proceso", "alta", "2026-06-01", null],
+      [5, 2, "Correctiva", "Motor principal fuera de servicio. Diagnóstico eléctrico en curso.", "pendiente", "alta", "2026-06-03", null],
+      [1, 3, "Preventiva", "Cambio de aceite motor y revisión general de 500 horas.", "terminado", "normal", "2026-05-28", "2026-05-29"],
+      [3, 1, "Preventiva", "Revisión de neumáticos y sistema de dirección.", "terminado", "normal", "2026-05-25", "2026-05-25"],
+      [4, 4, "Inspección", "Inspección de varillas de perforación y compresores.", "pendiente", "normal", "2026-06-05", null],
+      [6, 2, "Preventiva", "Engrase general y revisión de sistema hidráulico.", "en proceso", "normal", "2026-06-04", null],
+      [8, 5, "Cambio de aceite", "Cambio de aceite hidráulico y filtros.", "pendiente", "baja", "2026-06-07", null],
+      [9, 1, "Reparación mayor", "Revisión completa antes de reintegrar a operación.", "pendiente", "normal", "2026-06-10", null]
+    ];
+    mantenciones.forEach(m => {
+      db.run("INSERT INTO mantenciones (equipo_id, tecnico_id, tipo, descripcion, estado, prioridad, fecha_inicio, fecha_fin) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", m);
+    });
+  }
+
   // Guardamos el archivo en disco
   saveDB();
   console.log("✅ Base de datos inicializada correctamente");
