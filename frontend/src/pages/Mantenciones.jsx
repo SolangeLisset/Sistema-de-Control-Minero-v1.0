@@ -163,6 +163,10 @@ export default function Mantenciones() {
   const [search, setSearch]     = useState("");
   const [filterEstado, setFilterEstado] = useState("todos");
   const [filterPrioridad, setFilterPrioridad] = useState("todas");
+  const [filterTecnico, setFilterTecnico] = useState("todos");
+  const [fechaDesde, setFechaDesde] = useState("");
+  const [fechaHasta, setFechaHasta] = useState("");
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [modal, setModal]       = useState(null);
   const [confirmar, setConfirmar] = useState(null);
 
@@ -291,7 +295,23 @@ export default function Mantenciones() {
       .join(" ").toLowerCase().includes(search.toLowerCase());
     const matchEstado = filterEstado === "todos" || m.estado === filterEstado;
     const matchPrio   = filterPrioridad === "todas" || m.prioridad === filterPrioridad;
-    return matchSearch && matchEstado && matchPrio;
+    
+    // Filtro de Técnico asignado
+    const matchTecnico = filterTecnico === "todos" || 
+      (filterTecnico === "sin_asignar" && !m.tecnico_id) || 
+      (m.tecnico_id?.toString() === filterTecnico);
+
+    // Filtro de Rango de Fechas (usando fecha_inicio de la mantención)
+    let matchFecha = true;
+    if (m.fecha_inicio) {
+      const mDateStr = m.fecha_inicio.split("T")[0]; // "YYYY-MM-DD"
+      if (fechaDesde && mDateStr < fechaDesde) matchFecha = false;
+      if (fechaHasta && mDateStr > fechaHasta) matchFecha = false;
+    } else if (fechaDesde || fechaHasta) {
+      matchFecha = false; // no tiene fecha de inicio pero se especificó rango
+    }
+
+    return matchSearch && matchEstado && matchPrio && matchTecnico && matchFecha;
   });
 
   const pendientes  = mantenciones.filter((m) => m.estado === "pendiente").length;
@@ -322,11 +342,50 @@ export default function Mantenciones() {
             <option value="todas">Todas las prioridades</option>
             {PRIORIDADES.map((p) => <option key={p} value={p}>{p}</option>)}
           </select>
+          <button className={`btn ${showAdvanced ? "btn-primary" : "btn-ghost"}`} onClick={() => setShowAdvanced(!showAdvanced)} title="Filtros Avanzados">
+            ⚙️ Filtros
+          </button>
           <button className="btn btn-primary" onClick={() => setModal("crear")} disabled={equipos.length === 0}>
             ➕ Nueva Orden
           </button>
         </div>
       </div>
+
+      {showAdvanced && (
+        <div className="card" style={{ marginBottom: 20, padding: "14px 20px", display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center", background: "rgba(255,255,255,0.01)", borderColor: "var(--border)" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <label className="form-label" style={{ fontSize: 10, marginBottom: 2 }}>Técnico Asignado</label>
+            <select className="form-control" style={{ width: "180px", padding: "6px 10px" }} value={filterTecnico} onChange={(e) => setFilterTecnico(e.target.value)}>
+              <option value="todos">Todos los técnicos</option>
+              <option value="sin_asignar">Sin asignar</option>
+              {tecnicos.map((t) => <option key={t.id} value={t.id.toString()}>{t.nombre}</option>)}
+            </select>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <label className="form-label" style={{ fontSize: 10, marginBottom: 2 }}>Desde (Fecha Inicio)</label>
+            <input type="date" className="form-control" style={{ width: "auto", padding: "5px 10px" }} value={fechaDesde} onChange={(e) => setFechaDesde(e.target.value)} />
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <label className="form-label" style={{ fontSize: 10, marginBottom: 2 }}>Hasta (Fecha Inicio)</label>
+            <input type="date" className="form-control" style={{ width: "auto", padding: "5px 10px" }} value={fechaHasta} onChange={(e) => setFechaHasta(e.target.value)} />
+          </div>
+
+          <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignSelf: "flex-end" }}>
+            {(filterEstado !== "todos" || filterPrioridad !== "todas" || filterTecnico !== "todos" || fechaDesde || fechaHasta || search) && (
+              <button className="btn btn-danger btn-sm" onClick={() => {
+                setSearch("");
+                setFilterEstado("todos");
+                setFilterPrioridad("todas");
+                setFilterTecnico("todos");
+                setFechaDesde("");
+                setFechaHasta("");
+              }}>Limpiar Filtros</button>
+            )}
+          </div>
+        </div>
+      )}
 
       {equipos.length === 0 && !loading && (
         <div className="card" style={{ marginBottom: 16, borderColor: "var(--yellow)", background: "var(--yellow-glow)" }}>
