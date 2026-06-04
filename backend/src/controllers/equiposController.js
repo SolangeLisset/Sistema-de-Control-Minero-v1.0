@@ -102,4 +102,24 @@ const deleteEquipo = (req, res) => {
   }
 };
 
-module.exports = { getEquipos, getEquipoById, createEquipo, updateEquipo, deleteEquipo };
+// Obtener historial de mantenciones de un equipo
+const getEquipoMantenciones = (req, res) => {
+  try {
+    const db = getDB();
+    const { id } = req.params;
+    const result = db.exec(`
+      SELECT m.*, t.nombre AS tecnico_nombre
+      FROM mantenciones m
+      LEFT JOIN tecnicos t ON m.tecnico_id = t.id
+      WHERE m.equipo_id = ${id}
+      ORDER BY m.fecha_inicio DESC, m.creado_en DESC
+    `);
+    const mantenciones = result.length > 0 ? rowsToObjects(result[0]) : [];
+    res.json(mantenciones);
+  } catch (error) {
+    res.status(500).json({ error: "Error al obtener historial de mantenciones" });
+  }
+};
+
+module.exports = { getEquipos, getEquipoById, createEquipo, updateEquipo, deleteEquipo, getEquipoMantenciones };
+

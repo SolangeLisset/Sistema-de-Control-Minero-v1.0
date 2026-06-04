@@ -12,6 +12,7 @@ export const getEquipoById = (id) => API.get(`/equipos/${id}`);
 export const createEquipo = (data) => API.post("/equipos", data);
 export const updateEquipo = (id, data) => API.put(`/equipos/${id}`, data);
 export const deleteEquipo = (id) => API.delete(`/equipos/${id}`);
+export const getEquipoMantenciones = (id) => API.get(`/equipos/${id}/mantenciones`);
 
 // ── TÉCNICOS ─────────────────────────────────────────────────
 export const getTecnicos = () => API.get("/tecnicos");

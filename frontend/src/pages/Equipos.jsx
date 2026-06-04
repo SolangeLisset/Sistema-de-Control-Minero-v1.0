@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getEquipos, createEquipo, updateEquipo, deleteEquipo } from "../services/api";
+import { getEquipos, createEquipo, updateEquipo, deleteEquipo, getEquipoMantenciones } from "../services/api";
 import { useToast } from "../components/Toast";
 import ConfirmModal from "../components/ConfirmModal";
 
@@ -92,6 +92,96 @@ function EquipoModal({ equipo, onClose, onSaved }) {
   );
 }
 
+function HistorialModal({ equipo, onClose }) {
+  const { addToast } = useToast();
+  const [mantenciones, setMantenciones] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getEquipoMantenciones(equipo.id)
+      .then((res) => setMantenciones(res.data))
+      .catch(() => addToast("Error al cargar historial de mantenciones", "error"))
+      .finally(() => setLoading(false));
+  }, [equipo.id]);
+
+  const getPriorityStyle = (priority) => {
+    const map = { alta: "badge-red", normal: "badge-yellow", baja: "badge-blue" };
+    return map[priority] || "badge-gray";
+  };
+
+  const getStatusClass = (status) => {
+    const map = { terminado: "terminado", "en proceso": "en-proceso", pendiente: "pendiente" };
+    return map[status] || "pendiente";
+  };
+
+  return (
+    <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="modal" style={{ maxWidth: 650 }}>
+        <div className="modal-header">
+          <div>
+            <h3 style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span>📅 Historial de Mantenimiento</span>
+            </h3>
+            <p style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 4 }}>
+              Equipo: <strong style={{ color: "var(--yellow)" }}>{equipo.codigo}</strong> — {equipo.nombre}
+            </p>
+          </div>
+          <button className="btn btn-ghost btn-sm btn-icon" onClick={onClose}>✕</button>
+        </div>
+        <div className="modal-body" style={{ maxHeight: "60vh", overflowY: "auto" }}>
+          {loading ? (
+            <div className="loading"><div className="spinner" /> Cargando historial...</div>
+          ) : mantenciones.length === 0 ? (
+            <div className="empty-state" style={{ padding: "40px 0" }}>
+              <div className="empty-icon">🔧</div>
+              <h3>Sin registros</h3>
+              <p>Este equipo aún no registra órdenes de mantención en el sistema.</p>
+            </div>
+          ) : (
+            <div className="timeline">
+              {mantenciones.map((m) => (
+                <div key={m.id} className={`timeline-item ${getStatusClass(m.estado)}`}>
+                  <div className="timeline-marker" />
+                  <div className="timeline-content">
+                    <div className="timeline-header">
+                      <span className="timeline-title">🔧 {m.tipo}</span>
+                      <span className="timeline-date">
+                        {m.fecha_inicio ? new Date(m.fecha_inicio).toLocaleDateString("es-CL") : "Sin fecha"}
+                      </span>
+                    </div>
+                    <p className="timeline-body">{m.descripcion || "Sin descripción detallada del trabajo."}</p>
+                    <div className="timeline-footer">
+                      <div className="timeline-tech">
+                        <span>👤 Técnico:</span>
+                        <strong style={{ color: "var(--text-primary)" }}>
+                          {m.tecnico_nombre || "No asignado"}
+                        </strong>
+                      </div>
+                      <div style={{ display: "flex", gap: 6 }}>
+                        <span className={`timeline-badge badge ${getPriorityStyle(m.prioridad)}`}>
+                          {m.prioridad}
+                        </span>
+                        <span className={`timeline-badge badge ${
+                          m.estado === "terminado" ? "badge-green" : m.estado === "en proceso" ? "badge-yellow" : "badge-red"
+                        }`}>
+                          {m.estado}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="modal-footer">
+          <button type="button" className="btn btn-ghost" onClick={onClose}>Cerrar</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Equipos() {
   const { addToast } = useToast();
   const [equipos, setEquipos] = useState([]);
@@ -100,6 +190,7 @@ export default function Equipos() {
   const [filterEstado, setFilterEstado] = useState("todos");
   const [modal, setModal] = useState(null); // null | "crear" | equipo
   const [confirmar, setConfirmar] = useState(null); // equipo a eliminar
+  const [historial, setHistorial] = useState(null); // equipo a ver historial
 
   const fetchEquipos = () => {
     setLoading(true);
@@ -195,6 +286,7 @@ export default function Equipos() {
                   </td>
                   <td>
                     <div style={{ display: "flex", gap: 6 }}>
+                      <button className="btn btn-ghost btn-sm" onClick={() => setHistorial(eq)} title="Ver Historial">📅</button>
                       <button className="btn btn-ghost btn-sm" onClick={() => setModal(eq)} title="Editar">✏️</button>
                       <button className="btn btn-danger btn-sm" onClick={() => setConfirmar(eq)} title="Eliminar">🗑️</button>
                     </div>
@@ -220,6 +312,13 @@ export default function Equipos() {
           message={`¿Estás seguro que deseas eliminar el equipo ${confirmar.codigo} — ${confirmar.nombre}? Esta acción no se puede deshacer.`}
           onConfirm={handleDelete}
           onCancel={() => setConfirmar(null)}
+        />
+      )}
+
+      {historial && (
+        <HistorialModal
+          equipo={historial}
+          onClose={() => setHistorial(null)}
         />
       )}
     </div>

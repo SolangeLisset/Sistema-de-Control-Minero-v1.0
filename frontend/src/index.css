@@ -544,3 +544,128 @@ tbody tr:last-child td { border-bottom: none; }
   .form-grid { grid-template-columns: 1fr; }
   .stats-grid { grid-template-columns: 1fr 1fr; }
 }
+
+/* ── Timeline (Historial de Mantención) ───────────────────── */
+.timeline {
+  position: relative;
+  padding: 10px 0;
+  margin-top: 10px;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 15px;
+  width: 2px;
+  background: var(--border);
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 24px;
+  padding-left: 40px;
+}
+
+.timeline-item:last-child {
+  margin-bottom: 0;
+}
+
+.timeline-marker {
+  position: absolute;
+  top: 6px;
+  left: 9px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 3px solid var(--border);
+  z-index: 2;
+  transition: var(--transition);
+}
+
+.timeline-item.terminado .timeline-marker {
+  border-color: var(--green);
+  background: var(--green);
+  box-shadow: 0 0 8px rgba(63, 185, 80, 0.4);
+}
+
+.timeline-item.en-proceso .timeline-marker {
+  border-color: var(--yellow);
+  background: var(--yellow);
+  box-shadow: 0 0 8px rgba(240, 180, 41, 0.4);
+}
+
+.timeline-item.pendiente .timeline-marker {
+  border-color: var(--red);
+  background: var(--red);
+  box-shadow: 0 0 8px rgba(248, 81, 73, 0.4);
+}
+
+.timeline-content {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  transition: var(--transition);
+}
+
+.timeline-content:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--border-light);
+}
+
+.timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.timeline-title {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.timeline-date {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: monospace;
+}
+
+.timeline-body {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.timeline-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  border-top: 1px solid var(--border-light);
+  padding-top: 8px;
+  margin-top: 8px;
+}
+
+.timeline-tech {
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.timeline-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
