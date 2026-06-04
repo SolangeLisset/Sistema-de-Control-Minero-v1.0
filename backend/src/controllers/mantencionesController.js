@@ -152,11 +152,14 @@ const getDashboard = (req, res) => {
       ORDER BY m.creado_en DESC LIMIT 5
     `);
 
+    const equiposEnFalla = db.exec(`SELECT * FROM equipos WHERE estado = 'falla'`);
+
     res.json({
       equipos_por_estado: equiposPorEstado.length > 0 ? rowsToObjects(equiposPorEstado[0]) : [],
       mantenciones_por_estado: mantencionPorEstado.length > 0 ? rowsToObjects(mantencionPorEstado[0]) : [],
       total_tecnicos_activos: totalTecnicos.length > 0 ? totalTecnicos[0].values[0][0] : 0,
       ultimas_mantenciones: ultimasMantenciones.length > 0 ? rowsToObjects(ultimasMantenciones[0]) : [],
+      equipos_en_falla: equiposEnFalla.length > 0 ? rowsToObjects(equiposEnFalla[0]) : [],
     });
   } catch (error) {
     res.status(500).json({ error: "Error al obtener datos del dashboard" });

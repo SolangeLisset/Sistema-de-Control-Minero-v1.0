@@ -63,6 +63,34 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* ── Panel de Alertas Críticas (Semáforo de Urgencia) ── */}
+      {data?.equipos_en_falla && data.equipos_en_falla.length > 0 && (
+        <div className="critical-alert-banner">
+          <div className="critical-alert-header">
+            <div className="critical-alert-title">
+              <span className="critical-alert-icon">🚨</span>
+              <span>Alerta de Seguridad Operacional: {data.equipos_en_falla.length} Equipo(s) Crítico(s) en Falla</span>
+            </div>
+            <div className="critical-alert-badge">
+              <div className="critical-alert-pulse-dot" />
+              <span>ATENCIÓN INMEDIATA</span>
+            </div>
+          </div>
+          <div className="critical-alert-grid">
+            {data.equipos_en_falla.map((eq) => (
+              <div key={eq.id} className="critical-alert-card">
+                <div className="critical-alert-info">
+                  <span className="critical-alert-code">{eq.codigo}</span>
+                  <span className="critical-alert-name">{eq.nombre}</span>
+                  <span className="critical-alert-loc">📍 {eq.ubicacion}</span>
+                </div>
+                <span className="badge badge-red" style={{ fontSize: 10, padding: "2px 6px" }}>FALLA</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ── Tarjetas de estadísticas ── */}
       <div className="stats-grid">
         <div className="stat-card">
