@@ -166,6 +166,101 @@ export default function Mantenciones() {
   const [modal, setModal]       = useState(null);
   const [confirmar, setConfirmar] = useState(null);
 
+  const printPDF = (m) => {
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) {
+      addToast("Por favor, permite las ventanas emergentes (popups) para imprimir el reporte.", "error");
+      return;
+    }
+    const html = `
+      <html>
+        <head>
+          <title>Reporte de Mantención - Orden #${m.id}</title>
+          <style>
+            body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; padding: 40px; line-height: 1.6; }
+            .header { border-bottom: 3px solid #f0b429; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
+            .logo { font-size: 20px; font-weight: bold; color: #1c2333; display: flex; align-items: center; gap: 8px; font-family: sans-serif; }
+            .title { font-size: 26px; font-weight: bold; margin: 0; color: #1c2333; }
+            .meta-info { margin-bottom: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+            .info-box { background: #f7fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; }
+            .info-box h3 { margin-top: 0; border-bottom: 1px solid #cbd5e0; padding-bottom: 5px; color: #4a5568; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+            .info-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13.5px; }
+            .info-row span { font-weight: bold; color: #2d3748; }
+            .description { background: #fff; border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
+            .description h3 { margin-top: 0; color: #1c2333; border-bottom: 1px solid #cbd5e0; padding-bottom: 5px; font-size: 15px; }
+            .footer { margin-top: 60px; text-align: center; font-size: 11px; color: #718096; border-top: 1px solid #e2e8f0; padding-top: 20px; }
+            .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 60px; text-align: center; }
+            .signature-line { border-top: 1px solid #a0aec0; margin-top: 50px; padding-top: 8px; font-size: 11.5px; color: #4a5568; }
+            @media print {
+              body { padding: 20px; }
+              .no-print { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="logo">⛏️ SISTEMA DE CONTROL MINERO</div>
+            <div style="text-align: right;">
+              <strong>ORDEN DE TRABAJO #${m.id}</strong><br/>
+              <span style="color:#718096;font-size:11px;">Fecha: ${new Date().toLocaleDateString("es-CL")}</span>
+            </div>
+          </div>
+          
+          <h2 class="title">Ficha Técnica de Mantención</h2>
+          <p style="color:#718096; margin-bottom: 25px; margin-top: 5px;">Tipo de servicio: <strong style="color: #2d3748;">${m.tipo}</strong></p>
+
+          <div class="meta-info">
+            <div class="info-box">
+              <h3>Información del Equipo</h3>
+              <div class="info-row">Código: <span>${m.equipo_codigo}</span></div>
+              <div class="info-row">Nombre: <span>${m.equipo_nombre}</span></div>
+            </div>
+            <div class="info-box">
+              <h3>Detalles de la Orden</h3>
+              <div class="info-row">Estado: <span style="text-transform: capitalize;">${m.estado}</span></div>
+              <div class="info-row">Prioridad: <span style="text-transform: capitalize;">${m.prioridad}</span></div>
+              <div class="info-row">Fecha de Inicio: <span>${m.fecha_inicio ? new Date(m.fecha_inicio).toLocaleDateString("es-CL") : '—'}</span></div>
+              <div class="info-row">Fecha de Fin: <span>${m.fecha_fin ? new Date(m.fecha_fin).toLocaleDateString("es-CL") : '—'}</span></div>
+            </div>
+          </div>
+
+          <div class="description">
+            <h3>Descripción del Trabajo / Diagnóstico</h3>
+            <p style="margin: 0; white-space: pre-wrap;">${m.descripcion || 'Sin observaciones o detalles técnicos descritos.'}</p>
+          </div>
+
+          <div class="info-box" style="margin-bottom: 40px;">
+            <h3>Personal Responsable</h3>
+            <div class="info-row" style="margin-bottom: 0;">Técnico Asignado: <span>${m.tecnico_nombre || 'No asignado'}</span></div>
+          </div>
+
+          <div class="signatures">
+            <div>
+              <div class="signature-line">Firma Técnico Responsable</div>
+            </div>
+            <div>
+              <div class="signature-line">Firma Supervisor de Turno</div>
+            </div>
+          </div>
+
+          <div class="footer">
+            Documento generado digitalmente por Sistema de Control Minero v1.0 - Creadora: SolangeLisset
+          </div>
+
+          <script>
+            window.onload = function() {
+              window.print();
+              setTimeout(function() { window.close(); }, 500);
+            }
+          </script>
+        </body>
+      </html>
+    `;
+    printWindow.document.write(html);
+    printWindow.document.close();
+  };
+
+
   const fetchAll = () => {
     setLoading(true);
     Promise.all([getMantenciones(), getEquipos(), getTecnicos()])
@@ -293,8 +388,9 @@ export default function Mantenciones() {
                   </td>
                   <td>
                     <div style={{ display: "flex", gap: 6 }}>
-                      <button className="btn btn-ghost btn-sm" onClick={() => setModal(m)}>✏️</button>
-                      <button className="btn btn-danger btn-sm" onClick={() => setConfirmar(m)}>🗑️</button>
+                      <button className="btn btn-ghost btn-sm" onClick={() => printPDF(m)} title="Exportar PDF / Imprimir">📄</button>
+                      <button className="btn btn-ghost btn-sm" onClick={() => setModal(m)} title="Editar">✏️</button>
+                      <button className="btn btn-danger btn-sm" onClick={() => setConfirmar(m)} title="Eliminar">🗑️</button>
                     </div>
                   </td>
                 </tr>

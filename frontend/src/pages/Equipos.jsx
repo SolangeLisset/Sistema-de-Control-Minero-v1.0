@@ -213,6 +213,34 @@ export default function Equipos() {
     }
   };
 
+  const exportarExcel = () => {
+    if (equipos.length === 0) return;
+    const headers = ["Código", "Nombre", "Tipo", "Estado", "Ubicación", "Fecha Registro"];
+    const rows = filtered.map(e => [
+      e.codigo,
+      e.nombre,
+      e.tipo,
+      e.estado,
+      e.ubicacion,
+      new Date(e.creado_en).toLocaleDateString("es-CL")
+    ]);
+
+    const csvContent = "\uFEFF" + [
+      headers.join(";"),
+      ...rows.map(r => r.map(val => `"${val.replace(/"/g, '""')}"`).join(";"))
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `equipos_mineros_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    addToast("Planilla Excel (CSV) descargada correctamente", "success");
+  };
+
   const filtered = equipos.filter((e) => {
     const matchSearch = [e.codigo, e.nombre, e.ubicacion, e.tipo]
       .join(" ").toLowerCase().includes(search.toLowerCase());
@@ -239,6 +267,9 @@ export default function Equipos() {
             <option value="todos">Todos los estados</option>
             {ESTADOS.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
+          <button className="btn btn-ghost" onClick={exportarExcel} disabled={filtered.length === 0} title="Exportar a Excel (CSV)">
+            📥 Exportar Excel
+          </button>
           <button className="btn btn-primary" onClick={() => setModal("crear")}>
             ➕ Nuevo Equipo
           </button>
