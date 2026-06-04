@@ -157,9 +157,9 @@ mining-control/
 
 ---
 
-## 👨‍💻 Desarrollado por
+## 👩‍💻 Desarrollado por
 
-Proyecto de portafolio — Fullstack Developer  
+**SolangeLisset** — Fullstack Developer  
 📍 Iquique, Chile  
 🎯 Orientado a sistemas industriales y minería del norte de Chile
 

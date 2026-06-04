@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { getEquipos, createEquipo, updateEquipo, deleteEquipo } from "../services/api";
 import { useToast } from "../components/Toast";
+import ConfirmModal from "../components/ConfirmModal";
 
 const ESTADOS = ["operativo", "mantencion", "falla", "inactivo"];
 const TIPOS = ["Camión de extracción", "Perforadora", "Excavadora", "Cargador frontal", "Bulldozer", "Grúa", "Compresora", "Otro"];
@@ -98,6 +99,7 @@ export default function Equipos() {
   const [search, setSearch] = useState("");
   const [filterEstado, setFilterEstado] = useState("todos");
   const [modal, setModal] = useState(null); // null | "crear" | equipo
+  const [confirmar, setConfirmar] = useState(null); // equipo a eliminar
 
   const fetchEquipos = () => {
     setLoading(true);
@@ -109,11 +111,11 @@ export default function Equipos() {
 
   useEffect(() => { fetchEquipos(); }, []);
 
-  const handleDelete = async (equipo) => {
-    if (!confirm(`¿Eliminar ${equipo.codigo} — ${equipo.nombre}?`)) return;
+  const handleDelete = async () => {
     try {
-      await deleteEquipo(equipo.id);
+      await deleteEquipo(confirmar.id);
       addToast("Equipo eliminado", "success");
+      setConfirmar(null);
       fetchEquipos();
     } catch {
       addToast("Error al eliminar equipo", "error");
@@ -194,7 +196,7 @@ export default function Equipos() {
                   <td>
                     <div style={{ display: "flex", gap: 6 }}>
                       <button className="btn btn-ghost btn-sm" onClick={() => setModal(eq)} title="Editar">✏️</button>
-                      <button className="btn btn-danger btn-sm" onClick={() => handleDelete(eq)} title="Eliminar">🗑️</button>
+                      <button className="btn btn-danger btn-sm" onClick={() => setConfirmar(eq)} title="Eliminar">🗑️</button>
                     </div>
                   </td>
                 </tr>
@@ -209,6 +211,15 @@ export default function Equipos() {
           equipo={modal === "crear" ? null : modal}
           onClose={() => setModal(null)}
           onSaved={() => { setModal(null); fetchEquipos(); }}
+        />
+      )}
+
+      {confirmar && (
+        <ConfirmModal
+          title="Eliminar Equipo"
+          message={`¿Estás seguro que deseas eliminar el equipo ${confirmar.codigo} — ${confirmar.nombre}? Esta acción no se puede deshacer.`}
+          onConfirm={handleDelete}
+          onCancel={() => setConfirmar(null)}
         />
       )}
     </div>

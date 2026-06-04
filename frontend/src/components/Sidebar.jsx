@@ -37,7 +37,7 @@ export default function Sidebar() {
         <div style={{ marginBottom: 4, fontWeight: 600, color: "var(--text-secondary)" }}>
           v1.0.0 — Portafolio
         </div>
-        <div>Sistema Minero Demo</div>
+        <div style={{ color: "var(--yellow)", fontWeight: 700 }}>by SolangeLisset</div>
       </div>
     </aside>
   );

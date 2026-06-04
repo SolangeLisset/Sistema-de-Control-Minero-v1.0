@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { getTecnicos, createTecnico, updateTecnico, deleteTecnico } from "../services/api";
 import { useToast } from "../components/Toast";
+import ConfirmModal from "../components/ConfirmModal";
 
 const ESPECIALIDADES = [
   "Mecánica Pesada", "Mecánica de Precisión", "Electricidad Industrial",
@@ -88,6 +89,7 @@ export default function Tecnicos() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [modal, setModal] = useState(null);
+  const [confirmar, setConfirmar] = useState(null);
 
   const fetchTecnicos = () => {
     setLoading(true);
@@ -99,11 +101,11 @@ export default function Tecnicos() {
 
   useEffect(() => { fetchTecnicos(); }, []);
 
-  const handleDelete = async (tec) => {
-    if (!confirm(`¿Eliminar al técnico ${tec.nombre}?`)) return;
+  const handleDelete = async () => {
     try {
-      await deleteTecnico(tec.id);
+      await deleteTecnico(confirmar.id);
       addToast("Técnico eliminado", "success");
+      setConfirmar(null);
       fetchTecnicos();
     } catch {
       addToast("Error al eliminar técnico", "error");
@@ -194,7 +196,7 @@ export default function Tecnicos() {
                   <td>
                     <div style={{ display: "flex", gap: 6 }}>
                       <button className="btn btn-ghost btn-sm" onClick={() => setModal(tec)}>✏️</button>
-                      <button className="btn btn-danger btn-sm" onClick={() => handleDelete(tec)}>🗑️</button>
+                      <button className="btn btn-danger btn-sm" onClick={() => setConfirmar(tec)}>🗑️</button>
                     </div>
                   </td>
                 </tr>
@@ -209,6 +211,15 @@ export default function Tecnicos() {
           tecnico={modal === "crear" ? null : modal}
           onClose={() => setModal(null)}
           onSaved={() => { setModal(null); fetchTecnicos(); }}
+        />
+      )}
+
+      {confirmar && (
+        <ConfirmModal
+          title="Eliminar Técnico"
+          message={`¿Estás seguro que deseas eliminar a ${confirmar.nombre}? Se perderá toda su información y asignaciones.`}
+          onConfirm={handleDelete}
+          onCancel={() => setConfirmar(null)}
         />
       )}
     </div>

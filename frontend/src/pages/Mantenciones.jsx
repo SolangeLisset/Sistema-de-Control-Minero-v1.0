@@ -5,6 +5,7 @@ import {
 import { getEquipos } from "../services/api";
 import { getTecnicos } from "../services/api";
 import { useToast } from "../components/Toast";
+import ConfirmModal from "../components/ConfirmModal";
 
 const ESTADOS  = ["pendiente", "en proceso", "terminado"];
 const TIPOS    = ["Preventiva", "Correctiva", "Predictiva", "Inspección", "Cambio de aceite", "Reparación mayor", "Otro"];
@@ -163,6 +164,7 @@ export default function Mantenciones() {
   const [filterEstado, setFilterEstado] = useState("todos");
   const [filterPrioridad, setFilterPrioridad] = useState("todas");
   const [modal, setModal]       = useState(null);
+  const [confirmar, setConfirmar] = useState(null);
 
   const fetchAll = () => {
     setLoading(true);
@@ -178,11 +180,11 @@ export default function Mantenciones() {
 
   useEffect(() => { fetchAll(); }, []);
 
-  const handleDelete = async (m) => {
-    if (!confirm(`¿Eliminar esta orden de mantención?`)) return;
+  const handleDelete = async () => {
     try {
-      await deleteMantencion(m.id);
+      await deleteMantencion(confirmar.id);
       addToast("Mantención eliminada", "success");
+      setConfirmar(null);
       fetchAll();
     } catch {
       addToast("Error al eliminar", "error");
@@ -292,7 +294,7 @@ export default function Mantenciones() {
                   <td>
                     <div style={{ display: "flex", gap: 6 }}>
                       <button className="btn btn-ghost btn-sm" onClick={() => setModal(m)}>✏️</button>
-                      <button className="btn btn-danger btn-sm" onClick={() => handleDelete(m)}>🗑️</button>
+                      <button className="btn btn-danger btn-sm" onClick={() => setConfirmar(m)}>🗑️</button>
                     </div>
                   </td>
                 </tr>
@@ -309,6 +311,15 @@ export default function Mantenciones() {
           tecnicos={tecnicos}
           onClose={() => setModal(null)}
           onSaved={() => { setModal(null); fetchAll(); }}
+        />
+      )}
+
+      {confirmar && (
+        <ConfirmModal
+          title="Eliminar Orden de Mantención"
+          message={`¿Estás seguro que deseas eliminar la orden #${confirmar.id} de tipo "${confirmar.tipo}" para el equipo ${confirmar.equipo_codigo}? Esta acción no se puede deshacer.`}
+          onConfirm={handleDelete}
+          onCancel={() => setConfirmar(null)}
         />
       )}
     </div>
