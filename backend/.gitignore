@@ -1,0 +1,18 @@
+# ── Node ──────────────────────
+node_modules/
+npm-debug.log*
+
+# ── Base de datos ─────────────
+src/db/mining.db
+
+# ── Variables de entorno ──────
+.env
+.env.local
+
+# ── Sistema operativo ─────────
+.DS_Store
+Thumbs.db
+
+# ── Editor ────────────────────
+.vscode/
+.idea/
